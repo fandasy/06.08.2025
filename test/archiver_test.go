@@ -76,7 +76,7 @@ func TestAddObjectsTriggersArchive(t *testing.T) {
 	a := newTestArchiver(3, 3)
 
 	id, _ := a.NewTask()
-	err := a.AddObjects(id, []string{"file1", "file2"})
+	_, err := a.AddObjects(id, []string{"file1", "file2"})
 	require.NoError(t, err)
 
 	info, _ := a.GetStatus(id)
@@ -84,7 +84,7 @@ func TestAddObjectsTriggersArchive(t *testing.T) {
 	assert.Equal(t, archiver.StatusWaitingForObjects, info.Status)
 
 	// Trigger to work
-	err = a.AddObjects(id, []string{"file3"})
+	_, err = a.AddObjects(id, []string{"file3"})
 	require.NoError(t, err)
 
 	// Waiting for work to be completed
@@ -99,7 +99,7 @@ func TestMaxTasksExceeded(t *testing.T) {
 	a := newTestArchiver(1, 3) // max 1 task
 
 	id1, _ := a.NewTask()
-	_ = a.AddObjects(id1, []string{"a", "b", "c"})
+	_, _ = a.AddObjects(id1, []string{"a", "b", "c"})
 
 	// Expecting error: ErrMaxTasksExceeded
 	_, err := a.NewTask()
@@ -110,7 +110,7 @@ func TestInvalidTaskOperations(t *testing.T) {
 	a := newTestArchiver(3, 3)
 
 	// Bad id
-	err := a.AddObjects("bad-id", []string{"x"})
+	_, err := a.AddObjects("bad-id", []string{"x"})
 	assert.ErrorIs(t, err, archiver.ErrTaskNotFound)
 
 	_, err = a.GetStatus("bad-id")
@@ -128,7 +128,7 @@ func TestFailingGetter(t *testing.T) {
 	a := archiver.New(cfg, getter, saver)
 
 	id, _ := a.NewTask()
-	_ = a.AddObjects(id, []string{"ok", "fail", "ok"})
+	_, _ = a.AddObjects(id, []string{"ok", "fail", "ok"})
 
 	// Waiting for work to be completed
 	time.Sleep(1 * time.Second)
