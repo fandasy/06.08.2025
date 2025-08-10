@@ -24,6 +24,12 @@ type ArchiveObjectGetter struct {
 	client *http.Client
 }
 
+func NewArchiveObjectGetter(client *http.Client) *ArchiveObjectGetter {
+	return &ArchiveObjectGetter{
+		client: client,
+	}
+}
+
 func (a *ArchiveObjectGetter) ToLink(link string, contentTypes []string) (*object_storage.ArchiveObject, error) {
 	req, err := http.NewRequest(http.MethodGet, link, nil)
 	if err != nil {
@@ -34,7 +40,7 @@ func (a *ArchiveObjectGetter) ToLink(link string, contentTypes []string) (*objec
 
 	resp, err := a.client.Do(req)
 	if resp != nil {
-		resp.Body.Close()
+		defer resp.Body.Close()
 	}
 
 	if err != nil {
@@ -44,17 +50,6 @@ func (a *ArchiveObjectGetter) ToLink(link string, contentTypes []string) (*objec
 	switch resp.StatusCode {
 	case http.StatusNotFound:
 		return nil, ErrFileNotFound
-
-	case http.StatusMovedPermanently,
-		http.StatusFound,
-		http.StatusSeeOther,
-		http.StatusTemporaryRedirect,
-		http.StatusPermanentRedirect:
-		location := resp.Header.Get("Location")
-		if location == "" {
-			return nil, errors.New("redirect with no Location header")
-		}
-		return a.ToLink(location, contentTypes)
 
 	case http.StatusBadRequest:
 		return nil, ErrBadRequest
@@ -80,8 +75,10 @@ func (a *ArchiveObjectGetter) ToLink(link string, contentTypes []string) (*objec
 		return nil, fmt.Errorf("%w: %s", ErrIncorrectFormat, contentType)
 	}
 
-	filename := path.Base(link)
-	if filename == "." || filename == "/" {
+	finalURL := resp.Request.URL.String()
+
+	filename := path.Base(finalURL)
+	if filename == "." {
 		filename = "file_" + time.Now().Format("20060102150405")
 	}
 
