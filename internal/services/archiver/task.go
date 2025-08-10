@@ -44,7 +44,7 @@ func newTask(id string, maxObjects int) *task {
 	}
 }
 
-func (t *task) AddObjects(urls []string, maxObjects int) (bool, error) {
+func (t *task) AddObjects(urls []string, maxObjects int) (int, bool, error) {
 	if t.status == StatusWaitingForObjects {
 		t.mu.Lock()
 		defer t.mu.Unlock()
@@ -68,7 +68,7 @@ func (t *task) AddObjects(urls []string, maxObjects int) (bool, error) {
 			ready = true
 		}
 
-		return ready, nil
+		return toAdd, ready, nil
 
 	} else {
 		t.mu.RLock()
@@ -76,13 +76,13 @@ func (t *task) AddObjects(urls []string, maxObjects int) (bool, error) {
 
 		switch t.status {
 		case StatusArchiving:
-			return false, ErrTaskInProgress
+			return 0, false, ErrTaskInProgress
 
 		case StatusDone, StatusError:
-			return false, ErrTaskCompleted
+			return 0, false, ErrTaskCompleted
 
 		default:
-			return false, nil
+			return 0, false, nil
 		}
 	}
 }

@@ -8,9 +8,23 @@ import (
 )
 
 type Archiver interface {
+	// NewTask return error:
+	//  - ErrServiceStopped
+	//  - ErrMaxTasksExceeded
 	NewTask() (string, error)
-	AddObjects(id string, urls []string) error
+
+	// AddObjects return error:
+	//  - ErrServiceStopped
+	//  - ErrTaskNotFound
+	//  - ErrTaskInProgress
+	//  - ErrTaskCompleted
+	AddObjects(id string, urls []string) (int, error)
+
+	// GetStatus return error:
+	//  - ErrServiceStopped
+	//  - ErrTaskNotFound
 	GetStatus(id string) (*TaskInfo, error)
+
 	Stop(ctx context.Context) error
 }
 

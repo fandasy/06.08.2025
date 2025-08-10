@@ -18,6 +18,9 @@ var (
 	ErrServiceStopped     = errors.New("archiver service stopped")
 )
 
+// NewTask return error:
+//   - ErrServiceStopped
+//   - ErrMaxTasksExceeded
 func (a *archiver) NewTask() (string, error) {
 	if a.isStopped() {
 		return "", ErrServiceStopped
@@ -37,21 +40,26 @@ func (a *archiver) NewTask() (string, error) {
 	return id, nil
 }
 
-func (a *archiver) AddObjects(id string, urls []string) error {
+// AddObjects return error:
+//   - ErrServiceStopped
+//   - ErrTaskNotFound
+//   - ErrTaskInProgress
+//   - ErrTaskCompleted
+func (a *archiver) AddObjects(id string, urls []string) (int, error) {
 	if a.isStopped() {
-		return ErrServiceStopped
+		return 0, ErrServiceStopped
 	}
 
 	a.mu.RLock()
 	t, ok := a.tasks[id]
 	a.mu.RUnlock()
 	if !ok {
-		return ErrTaskNotFound
+		return 0, ErrTaskNotFound
 	}
 
-	ready, err := t.AddObjects(urls, a.cfg.MaxObjects)
+	toAdd, ready, err := t.AddObjects(urls, a.cfg.MaxObjects)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	if ready {
@@ -59,9 +67,12 @@ func (a *archiver) AddObjects(id string, urls []string) error {
 		go a.processTask(t)
 	}
 
-	return nil
+	return toAdd, nil
 }
 
+// GetStatus return error:
+//   - ErrServiceStopped
+//   - ErrTaskNotFound
 func (a *archiver) GetStatus(id string) (*TaskInfo, error) {
 	if a.isStopped() {
 		return nil, ErrServiceStopped
