@@ -13,8 +13,17 @@ type Storage struct {
 	dir  string
 }
 
-func New(addr string, dir string) *Storage {
-	return &Storage{dir: dir}
+func New(addr string, dir string) (*Storage, error) {
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err := os.Mkdir(dir, 0774); err != nil {
+			return nil, e.Wrap("can't create a local zip storage dir", err)
+		}
+	}
+
+	return &Storage{
+		addr: addr,
+		dir:  dir,
+	}, nil
 }
 
 func (s *Storage) SaveArchive(name string, objects []*object_storage.ArchiveObject) (string, error) {
