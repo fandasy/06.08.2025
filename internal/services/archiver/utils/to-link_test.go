@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -43,14 +44,14 @@ func TestToLink_ValidRequests(t *testing.T) {
 	t.Run("simple pdf download", func(t *testing.T) {
 		obj, err := getter.ToLink(serverPDF.URL+"/test.pdf", validTypes)
 		require.NoError(t, err)
-		require.Equal(t, "test.pdf", obj.Name)
+		require.Equal(t, ".pdf", filepath.Ext(obj.Name))
 		require.Contains(t, string(obj.Content), "fake pdf content")
 	})
 
 	t.Run("redirect to jpeg", func(t *testing.T) {
 		obj, err := getter.ToLink(serverRedirect.URL+"/redir", validTypes)
 		require.NoError(t, err)
-		require.Equal(t, "image.jpg", obj.Name)
+		require.Equal(t, ".jpg", filepath.Ext(obj.Name))
 		require.Contains(t, string(obj.Content), "jpeg content")
 	})
 

@@ -77,10 +77,8 @@ func (a *ArchiveObjectGetter) ToLink(link string, contentTypes []string) (*objec
 
 	finalURL := resp.Request.URL.String()
 
-	filename := path.Base(finalURL)
-	if filename == "." {
-		filename = "file_" + time.Now().Format("20060102150405")
-	}
+	filename := "file_" + time.Now().Format("20060102150405")
+	filename += path.Base(finalURL)
 
 	content, err := io.ReadAll(resp.Body)
 	if err != nil {
