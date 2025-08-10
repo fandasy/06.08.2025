@@ -147,3 +147,18 @@ func (t *task) Info() *TaskInfo {
 		Err:     t.err,
 	}
 }
+
+func (s TaskStatus) String() string {
+	switch s {
+	case StatusWaitingForObjects:
+		return "Waiting for objects"
+	case StatusArchiving:
+		return "Archiving"
+	case StatusDone:
+		return "Done"
+	case StatusError:
+		return "Error"
+	default:
+		return "Unknown"
+	}
+}
