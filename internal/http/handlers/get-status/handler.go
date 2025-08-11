@@ -34,8 +34,8 @@ func New(archiverService archiver.Archiver, log *slog.Logger) gin.HandlerFunc {
 			log = log.With("request id", requestID)
 		}
 
-		taskID, ok := c.GetQuery("id")
-		if !ok {
+		taskID := c.Param("id")
+		if taskID == "" {
 			log.Debug("Task ID missing in request parameters")
 
 			c.JSON(http.StatusBadRequest, response.Error("Task ID missing in request parameters"))
@@ -71,17 +71,27 @@ func New(archiverService archiver.Archiver, log *slog.Logger) gin.HandlerFunc {
 
 		objs := make([]Objects, 0, len(taskInfo.Objects))
 		for _, obj := range taskInfo.Objects {
+			var objErr string
+			if obj.Err != nil {
+				objErr = obj.Err.Error()
+			}
+
 			objs = append(objs, Objects{
 				Src: obj.Src,
-				Err: obj.Err.Error(),
+				Err: objErr,
 			})
+		}
+
+		var taskErr string
+		if taskInfo.Err != nil {
+			taskErr = taskInfo.Err.Error()
 		}
 
 		resp := Response{
 			Status:  taskInfo.Status.String(),
 			Objects: objs,
 			Zip:     taskInfo.Zip,
-			Err:     taskInfo.Err.Error(),
+			Err:     taskErr,
 		}
 
 		c.JSON(http.StatusOK, resp)

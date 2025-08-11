@@ -40,8 +40,8 @@ func New(archiverService archiver.Archiver, validExtension []string, log *slog.L
 			log = log.With("request id", requestID)
 		}
 
-		taskID, ok := c.GetQuery("id")
-		if !ok {
+		taskID := c.Param("id")
+		if taskID == "" {
 			log.Debug("Task ID missing in request parameters")
 
 			c.JSON(http.StatusBadRequest, response.Error("Task ID missing in request parameters"))
