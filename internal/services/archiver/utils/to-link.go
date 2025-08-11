@@ -21,16 +21,28 @@ var (
 )
 
 type ArchiveObjectGetter struct {
-	client *http.Client
+	client            *http.Client
+	validContentTypes map[string]struct{}
 }
 
-func NewArchiveObjectGetter(client *http.Client) *ArchiveObjectGetter {
+func NewArchiveObjectGetter(client *http.Client, validContentTypes []string) *ArchiveObjectGetter {
+	var m map[string]struct{}
+
+	if validContentTypes != nil && len(validContentTypes) > 0 {
+		m = make(map[string]struct{}, len(validContentTypes))
+
+		for _, contentType := range validContentTypes {
+			m[contentType] = struct{}{}
+		}
+	}
+
 	return &ArchiveObjectGetter{
-		client: client,
+		client:            client,
+		validContentTypes: m,
 	}
 }
 
-func (a *ArchiveObjectGetter) ToLink(link string, contentTypes []string) (*object_storage.ArchiveObject, error) {
+func (a *ArchiveObjectGetter) ToLink(link string) (*object_storage.ArchiveObject, error) {
 	req, err := http.NewRequest(http.MethodGet, link, nil)
 	if err != nil {
 		return nil, fmt.Errorf("new request failed: %w", err) // TODO
@@ -71,8 +83,11 @@ func (a *ArchiveObjectGetter) ToLink(link string, contentTypes []string) (*objec
 	}
 
 	contentType := resp.Header.Get("Content-Type")
-	if !validateContentType(contentType, contentTypes) {
-		return nil, fmt.Errorf("%w: %s", ErrIncorrectFormat, contentType)
+
+	if a.validContentTypes != nil {
+		if _, ok := a.validContentTypes[contentType]; !ok {
+			return nil, fmt.Errorf("%w: %s", ErrIncorrectFormat, contentType)
+		}
 	}
 
 	finalURL := resp.Request.URL.String()

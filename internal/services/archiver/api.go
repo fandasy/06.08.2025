@@ -29,7 +29,7 @@ type Archiver interface {
 }
 
 type ArchiveObjectGetter interface {
-	ToLink(link string, validContentTypes []string) (*object_storage.ArchiveObject, error)
+	ToLink(link string) (*object_storage.ArchiveObject, error)
 }
 
 type ArchiveSaver interface {
@@ -52,9 +52,8 @@ type archiver struct {
 }
 
 type Config struct {
-	MaxTasks         uint32
-	MaxObjects       int
-	ValidContentType []string
+	MaxTasks   uint32
+	MaxObjects int
 }
 
 func New(cfg Config, getter ArchiveObjectGetter, saver ArchiveSaver) Archiver {
@@ -74,16 +73,11 @@ const (
 	defaultMaxObjects = 3
 )
 
-var defaultValidContentType = []string{"text/plain"}
-
 func (cfg *Config) validate() {
 	if cfg.MaxTasks == 0 {
 		cfg.MaxTasks = defaultMaxTasks
 	}
 	if cfg.MaxObjects <= 0 {
 		cfg.MaxObjects = defaultMaxObjects
-	}
-	if cfg.ValidContentType == nil || len(cfg.ValidContentType) == 0 {
-		cfg.ValidContentType = defaultValidContentType
 	}
 }

@@ -94,7 +94,7 @@ func (a *archiver) processTask(t *task) {
 	var toSave []*object_storage.ArchiveObject
 
 	for i, obj := range t.Objects() {
-		archObj, err := a.getter.ToLink(obj.src, nil)
+		archObj, err := a.getter.ToLink(obj.src)
 		if err != nil {
 			t.setObjectError(i, err)
 			continue

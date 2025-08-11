@@ -20,7 +20,7 @@ type mockGetter struct {
 
 var ErrMockGetter = errors.New("mock getter error")
 
-func (m *mockGetter) ToLink(link string, validContentTypes []string) (*object_storage.ArchiveObject, error) {
+func (m *mockGetter) ToLink(link string) (*object_storage.ArchiveObject, error) {
 	if link == "fail" {
 		return nil, ErrMockGetter
 	}
@@ -52,9 +52,8 @@ func (m *mockSaver) SaveArchive(name string, objects []*object_storage.ArchiveOb
 
 func newTestArchiver(maxTasks uint32, maxObjects int) archiver.Archiver {
 	cfg := archiver.Config{
-		MaxTasks:         maxTasks,
-		MaxObjects:       maxObjects,
-		ValidContentType: []string{"application/pdf", "image/jpeg"},
+		MaxTasks:   maxTasks,
+		MaxObjects: maxObjects,
 	}
 	return archiver.New(cfg, &mockGetter{}, &mockSaver{})
 }
@@ -121,9 +120,8 @@ func TestFailingGetter(t *testing.T) {
 	getter := &mockGetter{}
 	saver := &mockSaver{}
 	cfg := archiver.Config{
-		MaxTasks:         3,
-		MaxObjects:       3,
-		ValidContentType: []string{"application/pdf"},
+		MaxTasks:   3,
+		MaxObjects: 3,
 	}
 	a := archiver.New(cfg, getter, saver)
 
