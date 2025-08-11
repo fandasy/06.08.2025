@@ -1,17 +1,15 @@
 logger:
-  dir: "" # If the field is empty, the logs are output to os.Stdout
+  dir: "" # os.Stdout
 
 archiver:
   max_tasks: 3
   max_objects: 3
-  valid_extension: # if empty then it does not validate
+  valid_extension:
     - ".pdf"
     - ".jpg"
     - ".jpeg"
   archive_object_getter:
-    valid_content_type: # if empty then it does not validate
-    # - "application/pdf"
-    # - "image/jpeg"
+    valid_content_type: # not validate
 
 local_zip_storage:
   dir: "zips"
