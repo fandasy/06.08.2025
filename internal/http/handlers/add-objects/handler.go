@@ -25,9 +25,13 @@ func New(archiverService archiver.Archiver, validExtension []string, log *slog.L
 
 	log = log.With("fn", fn)
 
-	validExtensionMap := make(map[string]struct{})
-	for _, ext := range validExtension {
-		validExtensionMap[ext] = struct{}{}
+	var validExtensionMap map[string]struct{}
+
+	if validExtension != nil && len(validExtension) > 0 {
+		validExtensionMap = make(map[string]struct{}, len(validExtension))
+		for _, ext := range validExtension {
+			validExtensionMap[ext] = struct{}{}
+		}
 	}
 
 	return func(c *gin.Context) {
@@ -119,6 +123,10 @@ func New(archiverService archiver.Archiver, validExtension []string, log *slog.L
 }
 
 func extensionValidate(urls []string, valid map[string]struct{}) []string {
+	if valid == nil {
+		return urls
+	}
+
 	out := make([]string, 0, len(urls))
 	for _, u := range urls {
 		parsedURL, err := url.Parse(u)
