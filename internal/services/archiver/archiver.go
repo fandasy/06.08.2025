@@ -3,6 +3,7 @@ package archiver
 import (
 	"context"
 	"errors"
+	"strconv"
 	"sync/atomic"
 
 	object_storage "github.com/fandasy/06.08.2025/internal/object-storage"
@@ -99,6 +100,7 @@ func (a *archiver) processTask(t *task) {
 			t.setObjectError(i, err)
 			continue
 		}
+		archObj.Name = strconv.Itoa(i) + archObj.Name
 		toSave = append(toSave, archObj)
 	}
 
