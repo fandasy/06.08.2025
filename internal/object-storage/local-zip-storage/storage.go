@@ -55,7 +55,7 @@ func (s *Storage) SaveArchive(name string, objects []*object_storage.ArchiveObje
 		}
 	}
 
-	fullPath := path.Join(s.addr, localPath)
+	url := path.Join(s.addr, name)
 
-	return fullPath, nil
+	return url, nil
 }
