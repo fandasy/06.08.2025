@@ -15,7 +15,7 @@ type Response struct {
 }
 
 func New(archiverService archiver.Archiver, log *slog.Logger) gin.HandlerFunc {
-	const fn = "handler.new_task.New"
+	const fn = "handlers.new_task.New"
 
 	log = log.With("fn", fn)
 

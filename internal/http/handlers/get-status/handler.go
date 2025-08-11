@@ -24,7 +24,7 @@ type Objects struct {
 }
 
 func New(archiverService archiver.Archiver, log *slog.Logger) gin.HandlerFunc {
-	const fn = "handler.get_status.New"
+	const fn = "handlers.get_status.New"
 
 	log = log.With("fn", fn)
 
