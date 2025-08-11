@@ -92,8 +92,10 @@ func (a *ArchiveObjectGetter) ToLink(link string) (*object_storage.ArchiveObject
 
 	finalURL := resp.Request.URL.String()
 
-	filename := "file_" + time.Now().Format("20060102150405")
-	filename += path.Base(finalURL)
+	filename := path.Base(finalURL)
+	if filename == "" || filename == "." || filename == "/" {
+		filename = "file_" + time.Now().Format("20060102150405")
+	}
 
 	content, err := io.ReadAll(resp.Body)
 	if err != nil {
