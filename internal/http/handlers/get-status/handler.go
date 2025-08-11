@@ -23,6 +23,48 @@ type Objects struct {
 	Err string `json:"error,omitempty"`
 }
 
+// New godoc
+// @Summary      Получить статус задачи архивации
+// @Description  Возвращает текущий статус задачи архивации, список объектов, ошибки и ссылку на архив (если задача завершена).
+// @Tags         tasks
+// @Produce      json
+// @Param        id   path      string  true  "ID задачи"
+// @Success      200  {object}  Response  "Информация о задаче"
+// @Failure      400  {object}  response.ErrorResponse "Параметр taskID отсутствует"
+// @Failure      404  {object}  response.ErrorResponse "Задача не найдена"
+// @Failure      503  {object}  response.ErrorResponse "Сервис архивации остановлен"
+// @Failure      500  {object}  response.ErrorResponse "Внутренняя ошибка сервера"
+// @Example      {json}  Успешный ответ:
+//
+//	{
+//	  "status": "Done",
+//	  "objects": [
+//	    { "src": "https://example.com/file1.pdf" },
+//	    { "src": "https://example.com/file2.jpeg", "error": "file not found" }
+//	  ],
+//	  "zip": "http://localhost:8080/storage/12345.zip",
+//	  "error": ""
+//	}
+//
+// @Example      {json}  Ошибка: Параметр taskID отсутствует:
+//
+//	{
+//	  "error": "Task ID missing in request parameters"
+//	}
+//
+// @Example      {json}  Ошибка: Задача не найдена:
+//
+//	{
+//	  "error": "Task not found"
+//	}
+//
+// @Example      {json}  Ошибка: Сервис архивации остановлен:
+//
+//	{
+//	  "error": "Archiver service is stopped"
+//	}
+//
+// @Router       /task/{id}/status [get]
 func New(archiverService archiver.Archiver, log *slog.Logger) gin.HandlerFunc {
 	const fn = "handlers.get_status.New"
 

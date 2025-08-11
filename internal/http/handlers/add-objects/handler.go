@@ -20,6 +20,86 @@ type Response struct {
 	Urls []string `json:"urls"`
 }
 
+// New godoc
+// @Summary      Добавить объекты в задачу архивации
+// @Description  Добавляет один или несколько файловых URL в существующую задачу архивации.
+// @Tags         tasks
+// @Accept       json
+// @Produce      json
+// @Param        id   path      string      true  "ID задачи"
+// @Param        request  body  Request     true  "Список URL-адресов для добавления"  example({"urls": ["https://example.com/file1.pdf", "https://example.com/image1.jpeg"]})
+// @Success      200  {object}  Response    "Ссылки успешно добавлены в задачу"
+// @Failure      400  {object}  response.ErrorResponse "Некорректный запрос"
+// @Failure      400  {object}  response.ErrorResponse "Параметр taskID отсутствует"
+// @Failure      400  {object}  response.ErrorResponse "Тело запроса невалидно (не JSON)"
+// @Failure      400  {object}  response.ErrorResponse "Список URL пуст ('urls is empty')"
+// @Failure      400  {object}  response.ErrorResponse "Нет поддерживаемых URL ('no valid urls')"
+// @Failure      400  {object}  response.ErrorResponse "Задача уже в обработке ('Task is in progress')"
+// @Failure      400  {object}  response.ErrorResponse "Задача уже завершена ('Task is completed')"
+// @Failure      404  {object}  response.ErrorResponse "Задача не найдена ('Task not found')"
+// @Failure      503  {object}  response.ErrorResponse "Сервис архивации остановлен"
+// @Failure      500  {object}  response.ErrorResponse "Внутренняя ошибка сервера"
+// @Example      {json}  Успешный запрос:
+//
+//	{
+//	  "urls": [
+//	    "https://example.com/file1.pdf",
+//	    "https://example.com/file2.jpeg"
+//	  ]
+//	}
+//
+// @Example      {json}  Успешный ответ:
+//
+//	{
+//	  "urls": [
+//	    "https://example.com/file1.pdf",
+//	    "https://example.com/file2.jpeg"
+//	  ]
+//	}
+//
+// @Example      {json}  Ошибка: Параметр taskID отсутствует:
+//
+//	{
+//	  "error": "Task ID missing in request parameters"
+//	}
+//
+// @Example      {json}  Ошибка: Список URL пуст:
+//
+//	{
+//	  "error": "urls is empty"
+//	}
+//
+// @Example      {json}  Ошибка: Нет поддерживаемых URL:
+//
+//	{
+//	  "error": "no valid urls"
+//	}
+//
+// @Example      {json}  Ошибка: Задача уже в обработке:
+//
+//	{
+//	  "error": "Task is in progress"
+//	}
+//
+// @Example      {json}  Ошибка: Задача уже завершена:
+//
+//	{
+//	  "error": "Task is completed"
+//	}
+//
+// @Example      {json}  Ошибка: Задача не найдена:
+//
+//	{
+//	  "error": "Task not found"
+//	}
+//
+// @Example      {json}  Ошибка: Сервис архивации остановлен:
+//
+//	{
+//	  "error": "Archiver service is stopped"
+//	}
+//
+// @Router       /task/{id}/add [post]
 func New(archiverService archiver.Archiver, validExtension []string, log *slog.Logger) gin.HandlerFunc {
 	const fn = "handlers.add_objects.New"
 

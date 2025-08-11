@@ -5,6 +5,8 @@ import (
 	"errors"
 	"github.com/fandasy/06.08.2025/internal/config"
 	zips_download "github.com/fandasy/06.08.2025/internal/http/handlers/zips-download"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -22,6 +24,7 @@ import (
 	"github.com/fandasy/06.08.2025/internal/services/archiver"
 	"github.com/fandasy/06.08.2025/internal/services/archiver/utils"
 
+	_ "github.com/fandasy/06.08.2025/docs"
 	"github.com/gin-gonic/gin"
 )
 
@@ -30,6 +33,9 @@ type App struct {
 	archiver archiver.Archiver
 }
 
+// @title           ZIP Archiver API
+// @version         1.0.0
+// @description     API for archiving files
 func New(env string, cfg *config.Config, log *slog.Logger) (*App, error) {
 	log.Debug("Config", slog.String("env", env), slog.Any("cfg", cfg))
 
@@ -66,6 +72,8 @@ func New(env string, cfg *config.Config, log *slog.Logger) (*App, error) {
 	router.GET("/task/:id/status", get_status.New(Archiver, log))
 
 	router.GET("/zips/:filename", zips_download.New(cfg.LocalZipStorage.Dir, log))
+
+	router.GET("/swagger/:any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	srv := &http.Server{
 		Addr:        cfg.HttpServer.Addr,

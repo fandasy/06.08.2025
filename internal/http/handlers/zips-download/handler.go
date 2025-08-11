@@ -10,6 +10,21 @@ import (
 	"path/filepath"
 )
 
+// New godoc
+// @Summary      Скачать готовый ZIP-архив
+// @Description  Возвращает готовый ZIP-архив задачи по имени файла. Если файл не найден — возвращает ошибку.
+// @Tags         zips
+// @Produce      application/zip
+// @Param        filename   path      string  true  "Имя ZIP-файла"
+// @Success      200        {file}    file    "ZIP-архив для скачивания"
+// @Failure      404        {object}  response.ErrorResponse "Файл не найден"
+// @Example      {json}  Ошибка: Файл не найден:
+//
+//	{
+//	  "error": "File not found"
+//	}
+//
+// @Router       /zips/{filename} [get]
 func New(zipsDir string, log *slog.Logger) gin.HandlerFunc {
 	const fn = "handlers.zips_download.New"
 

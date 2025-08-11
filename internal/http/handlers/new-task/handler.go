@@ -14,6 +14,34 @@ type Response struct {
 	ID string `json:"id"`
 }
 
+// New godoc
+// @Summary      Создать новую задачу архивации
+// @Description  Создаёт новую задачу для добавления файловых ссылок и последующего создания ZIP-архива.
+// @Tags         tasks
+// @Produce      json
+// @Success      200  {object}  Response  "Задача успешно создана"
+// @Failure      503  {object}  response.ErrorResponse "Сервис архивации остановлен"
+// @Failure      503  {object}  response.ErrorResponse "Превышен лимит одновременно выполняемых задач"
+// @Failure      500  {object}  response.ErrorResponse "Внутренняя ошибка сервера"
+// @Example      {json}  Успешный ответ:
+//
+//	{
+//	  "id": "7a34e8a2-bc44-4db8-b8cc-9b8ec6123456"
+//	}
+//
+// @Example      {json}  Ошибка: Сервис архивации остановлен:
+//
+//	{
+//	  "error": "Archiver service is stopped"
+//	}
+//
+// @Example      {json}  Ошибка: Превышен лимит задач:
+//
+//	{
+//	  "error": "Max tasks exceeded"
+//	}
+//
+// @Router       /task/new [get]
 func New(archiverService archiver.Archiver, log *slog.Logger) gin.HandlerFunc {
 	const fn = "handlers.new_task.New"
 
