@@ -3,10 +3,11 @@ package app
 import (
 	"context"
 	"errors"
+	"github.com/fandasy/06.08.2025/internal/config"
+	zips_download "github.com/fandasy/06.08.2025/internal/http/handlers/zips-download"
 	"log/slog"
 	"net/http"
-
-	"github.com/fandasy/06.08.2025/internal/config"
+	"net/url"
 
 	add_objects "github.com/fandasy/06.08.2025/internal/http/handlers/add-objects"
 	get_status "github.com/fandasy/06.08.2025/internal/http/handlers/get-status"
@@ -34,7 +35,13 @@ func New(env string, cfg *config.Config, log *slog.Logger) (*App, error) {
 
 	archiveObjectGetter := utils.NewArchiveObjectGetter(http.DefaultClient, cfg.Archiver.ArchiveObjectGetter.ValidContentType)
 
-	localZipStorage, err := local_zip_storage.New(cfg.HttpServer.Addr, cfg.LocalZipStorage.Dir)
+	zipsDownloadMethodPath := url.URL{
+		Scheme: "http",
+		Host:   cfg.HttpServer.Addr,
+		Path:   "zips",
+	}
+
+	localZipStorage, err := local_zip_storage.New(zipsDownloadMethodPath.String(), cfg.LocalZipStorage.Dir)
 	if err != nil {
 		return nil, err
 	}
@@ -57,6 +64,8 @@ func New(env string, cfg *config.Config, log *slog.Logger) (*App, error) {
 	router.GET("/task/new", new_task.New(Archiver, log))
 	router.POST("/task/:id/add", add_objects.New(Archiver, cfg.Archiver.ValidExtension, log))
 	router.GET("/task/:id/status", get_status.New(Archiver, log))
+
+	router.GET("/zips/:filename", zips_download.New(cfg.LocalZipStorage.Dir, log))
 
 	srv := &http.Server{
 		Addr:        cfg.HttpServer.Addr,
