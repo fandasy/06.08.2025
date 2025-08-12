@@ -5,6 +5,7 @@ import (
 	"github.com/fandasy/06.08.2025/internal/http/middlewares/logger"
 	"github.com/fandasy/06.08.2025/internal/pkg/api/response"
 	"github.com/fandasy/06.08.2025/internal/services/archiver"
+	"github.com/fandasy/06.08.2025/internal/services/archiver/utils"
 	"github.com/gin-gonic/gin"
 	"log/slog"
 	"net/http"
@@ -113,10 +114,7 @@ func New(archiverService archiver.Archiver, log *slog.Logger) gin.HandlerFunc {
 
 		objs := make([]Objects, 0, len(taskInfo.Objects))
 		for _, obj := range taskInfo.Objects {
-			var objErr string
-			if obj.Err != nil {
-				objErr = obj.Err.Error()
-			}
+			objErr := prepareClientObjErr(obj.Err)
 
 			objs = append(objs, Objects{
 				Src: obj.Src,
@@ -124,10 +122,7 @@ func New(archiverService archiver.Archiver, log *slog.Logger) gin.HandlerFunc {
 			})
 		}
 
-		var taskErr string
-		if taskInfo.Err != nil {
-			taskErr = taskInfo.Err.Error()
-		}
+		taskErr := prepareClientTaskErr(taskInfo.Err)
 
 		resp := Response{
 			Status:  taskInfo.Status.String(),
@@ -137,5 +132,41 @@ func New(archiverService archiver.Archiver, log *slog.Logger) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, resp)
+	}
+}
+
+func prepareClientObjErr(err error) string {
+	if err == nil {
+		return ""
+	}
+
+	switch {
+	case errors.Is(err, utils.ErrFileNotFound):
+		return "File not found"
+	case errors.Is(err, utils.ErrIncorrectFormat):
+		return "Incorrect format"
+	case errors.Is(err, utils.ErrBadRequest):
+		return "Bad Request"
+	case errors.Is(err, utils.ErrAuthenticationRequired):
+		return "Authentication Required"
+	case errors.Is(err, utils.ErrAccessDenied):
+		return "Access Denied"
+	case errors.Is(err, utils.ErrInternalSourceError):
+		return "Internal Source"
+	default:
+		return "Internal Error"
+	}
+}
+
+func prepareClientTaskErr(err error) string {
+	if err == nil {
+		return ""
+	}
+
+	switch {
+	case errors.Is(err, archiver.ErrNoObjectsToArchive):
+		return "No objects to archive"
+	default:
+		return "Internal Error"
 	}
 }
