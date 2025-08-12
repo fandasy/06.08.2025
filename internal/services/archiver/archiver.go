@@ -3,6 +3,9 @@ package archiver
 import (
 	"context"
 	"errors"
+	"github.com/fandasy/06.08.2025/internal/pkg/logger/sl"
+	"log/slog"
+	"runtime/debug"
 	"strconv"
 	"sync/atomic"
 
@@ -91,13 +94,21 @@ func (a *archiver) GetStatus(id string) (*TaskInfo, error) {
 func (a *archiver) processTask(t *task) {
 	defer a.active.Add(^uint32(0))
 	defer a.wg.Done()
+	defer func() {
+		if r := recover(); r != nil {
+			a.log.Error("Panic recovered", slog.String("stack", string(debug.Stack())))
+		}
+	}()
 
 	var toSave []*object_storage.ArchiveObject
 
 	for i, obj := range t.Objects() {
 		archObj, err := a.getter.ToLink(obj.src)
 		if err != nil {
+			a.log.Error("Failed to get archive object", slog.String("object", obj.src), sl.Err(err))
+
 			t.setObjectError(i, err)
+
 			continue
 		}
 		archObj.Name = strconv.Itoa(i) + archObj.Name
@@ -111,7 +122,10 @@ func (a *archiver) processTask(t *task) {
 
 	link, err := a.saver.SaveArchive(t.id, toSave)
 	if err != nil {
+		a.log.Error("Failed to save archive", slog.String("archive", t.id), sl.Err(err))
+
 		t.fail(err)
+
 		return
 	}
 

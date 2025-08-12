@@ -55,7 +55,7 @@ func New(env string, cfg *config.Config, log *slog.Logger) (*App, error) {
 	Archiver := archiver.New(archiver.Config{
 		MaxTasks:   cfg.Archiver.MaxTasks,
 		MaxObjects: cfg.Archiver.MaxObjects,
-	}, archiveObjectGetter, localZipStorage)
+	}, archiveObjectGetter, localZipStorage, log)
 
 	if env == models.EnvProd {
 		gin.SetMode(gin.ReleaseMode)

@@ -3,6 +3,7 @@ package archiver
 import (
 	"context"
 	object_storage "github.com/fandasy/06.08.2025/internal/object-storage"
+	"log/slog"
 	"sync"
 	"sync/atomic"
 )
@@ -49,6 +50,8 @@ type archiver struct {
 	stopOnce sync.Once
 	stopCh   chan struct{}
 	wg       sync.WaitGroup
+
+	log *slog.Logger
 }
 
 type Config struct {
@@ -56,7 +59,7 @@ type Config struct {
 	MaxObjects int
 }
 
-func New(cfg Config, getter ArchiveObjectGetter, saver ArchiveSaver) Archiver {
+func New(cfg Config, getter ArchiveObjectGetter, saver ArchiveSaver, log *slog.Logger) Archiver {
 	cfg.validate()
 
 	return &archiver{
@@ -65,6 +68,7 @@ func New(cfg Config, getter ArchiveObjectGetter, saver ArchiveSaver) Archiver {
 		saver:  saver,
 		tasks:  make(map[string]*task),
 		stopCh: make(chan struct{}),
+		log:    log,
 	}
 }
 

@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"sync"
 	"testing"
 	"time"
@@ -55,7 +56,7 @@ func newTestArchiver(maxTasks uint32, maxObjects int) archiver.Archiver {
 		MaxTasks:   maxTasks,
 		MaxObjects: maxObjects,
 	}
-	return archiver.New(cfg, &mockGetter{}, &mockSaver{})
+	return archiver.New(cfg, &mockGetter{}, &mockSaver{}, slog.Default())
 }
 
 func TestNewTaskAndGetStatus(t *testing.T) {
@@ -123,7 +124,7 @@ func TestFailingGetter(t *testing.T) {
 		MaxTasks:   3,
 		MaxObjects: 3,
 	}
-	a := archiver.New(cfg, getter, saver)
+	a := archiver.New(cfg, getter, saver, slog.Default())
 
 	id, _ := a.NewTask()
 	_, _ = a.AddObjects(id, []string{"ok", "fail", "ok"})
