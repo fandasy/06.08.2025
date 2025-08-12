@@ -284,8 +284,8 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "API for archiving files",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
-	LeftDelim:        "{{",
-	RightDelim:       "}}",
+	//LeftDelim:        "{{",
+	//RightDelim:       "}}",
 }
 
 func init() {
