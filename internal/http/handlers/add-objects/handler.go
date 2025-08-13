@@ -17,7 +17,13 @@ type Request struct {
 }
 
 type Response struct {
-	Urls []string `json:"urls"`
+	Added int   `json:"added"`
+	Urls  []Url `json:"urls,omitempty"`
+}
+
+type Url struct {
+	Value string `json:"url,omitempty"`
+	Err   string `json:"error,omitempty"`
 }
 
 // New godoc
@@ -51,9 +57,10 @@ type Response struct {
 // @Example      {json}  Успешный ответ:
 //
 //	{
+//	  "added": 2,
 //	  "urls": [
-//	    "https://example.com/file1.pdf",
-//	    "https://example.com/file2.jpeg"
+//	    {"url": "https://example.com/file1.pdf"},
+//	    {"url": "https://example.com/image1.jpeg"}
 //	  ]
 //	}
 //
@@ -146,7 +153,17 @@ func New(archiverService archiver.Archiver, validExtension []string, log *slog.L
 			return
 		}
 
-		urls := extensionValidate(req.Urls, validExtensionMap)
+		var resp Response
+
+		urls := make([]string, 0, len(req.Urls))
+		for _, u := range req.Urls {
+			if err := extensionValidate(u, validExtensionMap); err != nil {
+				resp.Urls = append(resp.Urls, Url{Value: u, Err: err.Error()})
+				continue
+			}
+			resp.Urls = append(resp.Urls, Url{Value: u})
+			urls = append(urls, u)
+		}
 
 		if len(urls) == 0 {
 			log.Debug("No valid URLs")
@@ -194,29 +211,43 @@ func New(archiverService archiver.Archiver, validExtension []string, log *slog.L
 			}
 		}
 
-		addedUrls := urls[:added]
+		if added < len(urls) {
+			validCount := 0
+			for i := range resp.Urls {
+				if resp.Urls[i].Err == "" {
+					validCount++
+					if validCount > added {
+						resp.Urls[i].Err = ErrNoMorePlacesAvailable.Error()
+					}
+				}
+			}
+		}
 
-		log.Info("Urls successfully added to task", slog.String("taskID", taskID), slog.Any("urls", addedUrls))
+		resp.Added = added
 
-		c.JSON(http.StatusOK, Response{addedUrls})
+		log.Info("Urls successfully added to task", slog.String("task id", taskID), slog.Any("urls", resp.Urls))
+
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
-func extensionValidate(urls []string, valid map[string]struct{}) []string {
-	if valid == nil {
-		return urls
+var (
+	ErrIncorrectUrl          = errors.New("incorrect url")
+	ErrInvalidExtension      = errors.New("invalid extension")
+	ErrNoMorePlacesAvailable = errors.New("no more places available")
+)
+
+func extensionValidate(u string, valid map[string]struct{}) error {
+	parsedURL, err := url.Parse(u)
+	if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
+		return ErrIncorrectUrl
 	}
 
-	out := make([]string, 0, len(urls))
-	for _, u := range urls {
-		parsedURL, err := url.Parse(u)
-		if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
-			continue
-		}
-
-		if _, ok := valid[filepath.Ext(u)]; ok {
-			out = append(out, u)
+	if valid != nil {
+		if _, ok := valid[filepath.Ext(u)]; !ok {
+			return ErrInvalidExtension
 		}
 	}
-	return out
+
+	return nil
 }
