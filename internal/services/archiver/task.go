@@ -45,13 +45,17 @@ func newTask(id string, maxObjects int) *task {
 }
 
 func (t *task) AddObjects(urls []string, maxObjects int) (int, bool, error) {
+	t.mu.RLock()
+
 	if t.status == StatusWaitingForObjects {
+		t.mu.RUnlock()
+
 		t.mu.Lock()
 		defer t.mu.Unlock()
 
 		free := maxObjects - len(t.objects)
 		var toAdd int
-		if len(t.objects) >= free {
+		if len(urls) > free {
 			toAdd = free
 		} else {
 			toAdd = len(urls)
@@ -71,7 +75,6 @@ func (t *task) AddObjects(urls []string, maxObjects int) (int, bool, error) {
 		return toAdd, ready, nil
 
 	} else {
-		t.mu.RLock()
 		defer t.mu.RUnlock()
 
 		switch t.status {
