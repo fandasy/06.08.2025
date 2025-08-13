@@ -1,0 +1,187 @@
+definitions:
+  add_objects.Request:
+    properties:
+      urls:
+        items:
+          type: string
+        type: array
+    type: object
+  add_objects.Response:
+    properties:
+      added:
+        type: integer
+      urls:
+        items:
+          $ref: '#/definitions/add_objects.Url'
+        type: array
+    type: object
+  add_objects.Url:
+    properties:
+      error:
+        type: string
+      url:
+        type: string
+    type: object
+  get_status.Objects:
+    properties:
+      error:
+        type: string
+      src:
+        type: string
+    type: object
+  get_status.Response:
+    properties:
+      error:
+        type: string
+      objects:
+        items:
+          $ref: '#/definitions/get_status.Objects'
+        type: array
+      status:
+        type: string
+      zip:
+        type: string
+    type: object
+  new_task.Response:
+    properties:
+      id:
+        type: string
+    type: object
+  response.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: API for archiving files
+  title: ZIP Archiver API
+  version: 1.0.0
+paths:
+  /task/{id}/add:
+    post:
+      consumes:
+      - application/json
+      description: Добавляет один или несколько файловых URL в существующую задачу
+        архивации.
+      parameters:
+      - description: ID задачи
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Список URL-адресов для добавления
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/add_objects.Request'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ссылки успешно добавлены в задачу
+          schema:
+            $ref: '#/definitions/add_objects.Response'
+        "400":
+          description: Задача уже завершена ('Task is completed')
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Задача не найдена ('Task not found')
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "503":
+          description: Сервис архивации остановлен
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Добавить объекты в задачу архивации
+      tags:
+      - tasks
+  /task/{id}/status:
+    get:
+      description: Возвращает текущий статус задачи архивации, список объектов, ошибки
+        и ссылку на архив (если задача завершена).
+      parameters:
+      - description: ID задачи
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о задаче
+          schema:
+            $ref: '#/definitions/get_status.Response'
+        "400":
+          description: Параметр taskID отсутствует
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Задача не найдена
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "503":
+          description: Сервис архивации остановлен
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Получить статус задачи архивации
+      tags:
+      - tasks
+  /task/new:
+    get:
+      description: Создаёт новую задачу для добавления файловых ссылок и последующего
+        создания ZIP-архива.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Задача успешно создана
+          schema:
+            $ref: '#/definitions/new_task.Response'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "503":
+          description: Превышен лимит одновременно выполняемых задач
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Создать новую задачу архивации
+      tags:
+      - tasks
+  /zips/{filename}:
+    get:
+      description: Возвращает готовый ZIP-архив задачи по имени файла. Если файл не
+        найден — возвращает ошибку.
+      parameters:
+      - description: Имя ZIP-файла
+        in: path
+        name: filename
+        required: true
+        type: string
+      produces:
+      - application/zip
+      responses:
+        "200":
+          description: ZIP-архив для скачивания
+          schema:
+            type: file
+        "404":
+          description: Файл не найден
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Скачать готовый ZIP-архив
+      tags:
+      - zips
+swagger: "2.0"
