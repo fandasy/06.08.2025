@@ -190,7 +190,7 @@ go run ./cmd/zipper/main.go --env prod --config ./config/your_config.yaml
 1. Проверка ссылок делится на два этапа:
    1. До отправки в задачу, проверяется только структура url и указанное расширение файла
    2. После запуска задачи в исполнение, проверяются все этапы получения файла из источника
-2. Реализация handlers находится по пути ./internal/http/handlers
-3. Реализация главного сервиса Archiver находится по пути ./internal/services/archiver 
-4. Логика получения файлов с источников находится по пути ./internal/services/archiver/utils/to-link.go
-5. Реализация локального zip хранилища находится по пути ./internal/object-storage/local-zip-storage
+2. Реализация handlers находится по пути ./internal/http/[handlers](./internal/http/handlers)
+3. Реализация главного сервиса Archiver находится по пути ./internal/services/[archiver](./internal/services/archiver) 
+4. Логика получения файлов с источников находится по пути ./internal/services/archiver/utils/[to-link.go](./internal/services/archiver/utils/to-link.go)
+5. Реализация локального zip хранилища находится по пути ./internal/object-storage/[local-zip-storage](./internal/object-storage/local-zip-storage)
