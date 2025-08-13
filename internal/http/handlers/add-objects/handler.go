@@ -22,7 +22,7 @@ type Response struct {
 }
 
 type Url struct {
-	Value string `json:"url,omitempty"`
+	Value string `json:"url"`
 	Err   string `json:"error,omitempty"`
 }
 
